@@ -5,55 +5,58 @@ class Bonk
 	bundle: (paths) ->
 		modules = ''
 		modules +=  @makeModule path.join(filename.slice(pathname.length), '..'), filename.slice(pathname.length, -path.extname(filename).length), @processFile filename for filename in @getFiles pathname for pathname in paths
-		output = "(function(){
-			var modules = {#{modules}};
+		output = js: """
+			(function(){
+				var modules = {#{modules}};
 			
-			this.require = function require(name)
-			{
-				if (modules[name])
+				this.require = function require(name)
 				{
-					var module = {id: name, exports: {}};
-					var path = modules[name].path;
-					modules[name].module(module, module.exports, function(name)
+					if (modules[name])
 					{
-						if (name.indexOf('./') === 0 || name.indexOf('../') === 0)
+						var module = {id: name, exports: {}};
+						var path = modules[name].path;
+						modules[name].module(module, module.exports, function(name)
 						{
-							while (true)
+							if (name.indexOf('./') === 0 || name.indexOf('../') === 0)
 							{
-								if (name.indexOf('./') === 0)
+								while (true)
 								{
-									name = name.slice(2);
-								}
-								else if (name.indexOf('../') === 0)
-								{
-									name = name.slice(3);
-									if (path.indexOf('/') === -1)
-										path = '';
+									if (name.indexOf('./') === 0)
+									{
+										name = name.slice(2);
+									}
+									else if (name.indexOf('../') === 0)
+									{
+										name = name.slice(3);
+										if (path.indexOf('/') === -1)
+											path = '';
+										else
+											path = path.slice(0, path.lastIndexOf('/')+1);
+									}
 									else
-										path = path.slice(0, path.lastIndexOf('/')+1);
+									{
+										break;
+									}
 								}
-								else
-								{
-									break;
-								}
-							}
 							
-							return require(path + name);
-						}
-						else
-						{
-							return require(name);
-						}
-					});
+								return require(path + name);
+							}
+							else
+							{
+								return require(name);
+							}
+						});
 					
-					return module.exports;
+						return module.exports;
+					}
+					else
+					{
+						throw 'Module ' + name + ' does not exist';
+					}
 				}
-				else
-				{
-					throw 'Module ' + name + ' does not exist';
-				}
-			}
-		})()"
+			})()
+		"""
+		
 		
 	getFiles: (pathname) ->
 		files = []
@@ -73,6 +76,9 @@ class Bonk
 			return processors[extension] filename
 			
 	makeModule: (pathname, modulename, source) ->
+		if ! source
+			return
+			
 		if pathname == '.'
 			pathname = ''
 			
