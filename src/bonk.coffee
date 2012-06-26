@@ -4,7 +4,22 @@ path = require 'path'
 class Bonk
 	bundle: (paths) ->
 		modules = ''
-		modules +=  @makeModule path.join(filename.slice(pathname.length), '..'), filename.slice(pathname.length, -path.extname(filename).length), @processFile filename for filename in @getFiles pathname for pathname in paths
+		#modules +=  @makeModule filename.slice(pathname.length, -path.extname(filename).length), @processFile filename for filename in @getFiles pathname for pathname in paths
+		
+		for pathname in paths
+			if typeof pathname == 'string'
+				stats = fs.statSync(pathname)
+				if stats.isDirectory()
+					files = @getFiles pathname
+					for filename in files
+						source = @processFile filename
+						modules += @makeModule filename.slice(pathname.length, -path.extname(filename).length), source
+				else if stats.isFile()
+					source = @processFile filename
+					modules += @makeModule filename.slice(pathname.length, -path.extname(filename).length), source
+			else if typeof pathname == 'object'
+				source = @processFile pathname.file
+				modules += @makeModule pathname.name, source
 		output = js: """
 			(function(){
 				var modules = {#{modules}};
@@ -75,9 +90,11 @@ class Bonk
 		if processors[extension]
 			return processors[extension] filename
 			
-	makeModule: (pathname, modulename, source) ->
+	makeModule: (modulename, source) ->
 		if ! source
 			return
+			
+		pathname = path.join(modulename, '..')
 			
 		if pathname == '.'
 			pathname = ''
