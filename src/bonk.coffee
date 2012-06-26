@@ -107,7 +107,7 @@ processors =
 	coffee: (filename) ->
 		(require 'coffee-script').compile fs.readFileSync(filename, 'utf8'), bare:true
 	jade: (filename) ->
-		'module.exports = ' + (require 'jade').compile fs.readFileSync(filename, 'utf8'), client: true
+		'var jade = require(\'jade\'); module.exports = ' + (require 'jade').compile fs.readFileSync(filename, 'utf8'), client: true
 
 exports.Bonk = Bonk
 exports.processors = processors
