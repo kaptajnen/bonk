@@ -1,5 +1,5 @@
 {
-	"name": "Bonk",
+	"name": "bonk",
 	"description": "Packages js/coffeescript/jade assets into a single js file.",
 	"version": "1.0.1",
 	"keywords": ["build", "assets", "bundle"],
