@@ -4,23 +4,36 @@ path = require 'path'
 class Bonk
 	bundle: (paths) ->
 		modules = ''
+		bareModules = ''
 		#modules +=  @makeModule filename.slice(pathname.length, -path.extname(filename).length), @processFile filename for filename in @getFiles pathname for pathname in paths
 		
 		for pathname in paths
-			if typeof pathname == 'string'
-				stats = fs.statSync(pathname)
-				if stats.isDirectory()
-					files = @getFiles pathname
-					for filename in files
-						source = @processFile filename
-						modules += @makeModule filename.slice(pathname.length, -path.extname(filename).length), source
-				else if stats.isFile()
-					source = @processFile filename
-					modules += @makeModule filename.slice(pathname.length, -path.extname(filename).length), source
-			else if typeof pathname == 'object'
-				source = @processFile pathname.file
-				modules += @makeModule pathname.name, source
+			settings = bare: false
+			
+			if typeof pathname == 'object'
+				settings.bare = pathname.bare if pathname.bare
+				settings.name = pathname.name if pathname.name
+				settings.file = pathname.file if pathname.file
+			else if typeof pathname == 'string'
+				settings.file = pathname
+			
+			stats = fs.statSync(settings.file)
+			if stats.isDirectory()
+				files = @getFiles settings.file
+				# dont allow fixing name is the file is a folder
+				settings.name = undefined
+			else if stats.isFile()
+				files = [settings.file]
+			for filename in files
+				source = @processFile filename
+				if settings.bare
+					bareModules += source + "\n"
+				else
+					modulename = if settings.name then settings.name else filename.slice(pathname.length, -path.extname(filename).length)
+					modules += @makeModule modulename, source
+				
 		output = js: """
+			#{bareModules}
 			(function(){
 				var modules = {#{modules}};
 			

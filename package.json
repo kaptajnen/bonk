@@ -1,7 +1,7 @@
 {
 	"name": "Bonk",
 	"description": "Packages js/coffeescript/jade assets into a single js file.",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"keywords": ["build", "assets", "bundle"],
 	"dependencies": {
 		"coffee-script": "1.3.3",
