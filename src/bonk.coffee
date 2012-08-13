@@ -43,7 +43,7 @@ class Bonk
 					{
 						var module = {id: name, exports: {}};
 						var path = modules[name].path;
-						modules[name].module(module, module.exports, function(name)
+						modules[name].module.call(this, module, module.exports, function(name)
 						{
 							if (name.indexOf('./') === 0 || name.indexOf('../') === 0)
 							{
